@@ -34,9 +34,10 @@ def ids(ns):
     for instance in ec2.instances.all():
         printIfMatchOrEmpty(getInstanceName(instance), ns.name, instance.instance_id)
 
-parser_ids = sub_parsers.add_parser('ids')
-parser_ids.set_defaults(target='ids')
-parser_ids.add_argument('--name')
+sub_parser = sub_parsers.add_parser('ids')
+sub_parser.set_defaults(target='ids')
+sub_parser.set_defaults(func=ids)
+sub_parser.add_argument('--name')
 
 def names(ns):
     ec2 = boto3.resource('ec2')
@@ -48,8 +49,9 @@ def names(ns):
                 break
         print(name)
 
-parser_names = sub_parsers.add_parser('names')
-parser_names.set_defaults(target='names')
+sub_parser = sub_parsers.add_parser('names')
+sub_parser.set_defaults(target='names')
+sub_parser.set_defaults(func=names)
 
 def status(ns):
     ec2 = boto3.resource('ec2')
@@ -61,32 +63,56 @@ def status(ns):
             instance.state['Name']
             ))
 
-parser_status = sub_parsers.add_parser('status')
-parser_status.set_defaults(target='status')
+sub_parser = sub_parsers.add_parser('status')
+sub_parser.set_defaults(target='status')
+sub_parser.set_defaults(func=status)
 
 def ip_pub(ns):
     ec2 = boto3.resource('ec2')
     for instance in ec2.instances.all():
         printIfMatchOrEmpty(getInstanceName(instance), ns.name, instance.public_ip_address)
 
-parser_ids = sub_parsers.add_parser('ip_pub')
-parser_ids.set_defaults(target='ip_pub')
-parser_ids.add_argument('--name')
+sub_parser = sub_parsers.add_parser('ip_pub')
+sub_parser.set_defaults(target='ip_pub')
+sub_parser.add_argument('--name')
+sub_parser.set_defaults(func=ip_pub)
+
+def start(ns):
+    ec2 = boto3.resource('ec2')
+    for instance in ec2.instances.all():
+        if ns.name and getInstanceName(instance) in ns.args:
+            instance.start()
+        elif instance.id in ns.args:
+            instance.start()
+
+sub_parser = sub_parsers.add_parser('start')
+sub_parser.set_defaults(target='start')
+sub_parser.add_argument('--name', action='store_true')
+sub_parser.add_argument('args')
+sub_parser.set_defaults(func=start)
+
+def stop(ns):
+    ec2 = boto3.resource('ec2')
+    for instance in ec2.instances.all():
+        if ns.name and getInstanceName(instance) in ns.args:
+            instance.stop()
+        elif instance.id in ns.args:
+            instance.stop()
+
+sub_parser = sub_parsers.add_parser('stop')
+sub_parser.set_defaults(target='stop')
+sub_parser.add_argument('--name', action='store_true')
+sub_parser.add_argument('args')
+sub_parser.set_defaults(func=stop)
 
 # --------------------------------------------------------------------------------
 # main
 # --------------------------------------------------------------------------------
 def main():
     namespace = parser.parse_args()
-    
-    if namespace.target == 'names':
-        names(namespace)
-    elif namespace.target == 'ids':
-        ids(namespace)
-    elif namespace.target == 'status':
-        status(namespace)
-    elif namespace.target == 'ip_pub':
-        ip_pub(namespace)
+
+    if namespace.target is not None:
+        namespace.func(namespace)
     else:
         parser.print_help()
 
