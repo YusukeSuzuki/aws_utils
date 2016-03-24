@@ -111,7 +111,7 @@ sub_parser.set_defaults(func=stop)
 def main():
     namespace = parser.parse_args()
 
-    if namespace.target is not None:
+    if namespace.target is not None and namespace.target:
         namespace.func(namespace)
     else:
         parser.print_help()
