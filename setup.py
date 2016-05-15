@@ -11,7 +11,8 @@ setup(
     license='MIT',
     packages=['aws_utils'],
     scripts=[
-        'bin/ec2'
+        'bin/ec2',
+        'bin/ec2_ssh_priv'
         ],
     install_requires=[
         'boto3'
