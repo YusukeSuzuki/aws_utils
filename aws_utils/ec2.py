@@ -17,7 +17,7 @@ sub_parsers =  parser.add_subparsers(title='sub commands')
 # --------------------------------------------------------------------------------
 
 def getInstanceName(instance):
-    for tag in instance.tags:
+    for tag in instance.tags or []:
         if tag['Key'] == 'Name':
             return tag['Value']
     return None
