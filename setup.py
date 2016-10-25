@@ -12,7 +12,8 @@ setup(
     packages=['aws_utils'],
     scripts=[
         'bin/ec2',
-        'bin/ec2_ssh_priv'
+        'bin/ec2_ssh_priv',
+        'bin/ec2_ssh_pub'
         ],
     install_requires=[
         'boto3'

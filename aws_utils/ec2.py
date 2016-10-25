@@ -87,6 +87,16 @@ sub_parser.set_defaults(target='priv_dns_name')
 sub_parser.add_argument('--name')
 sub_parser.set_defaults(func=priv_dns_name)
 
+def pub_dns_name(ns):
+    ec2 = boto3.resource('ec2')
+    for instance in ec2.instances.all():
+        printIfMatchOrEmpty(getInstanceName(instance), ns.name, instance.public_dns_name)
+
+sub_parser = sub_parsers.add_parser('pub_dns_name')
+sub_parser.set_defaults(target='pub_dns_name')
+sub_parser.add_argument('--name')
+sub_parser.set_defaults(func=pub_dns_name)
+
 def start(ns):
     ec2 = boto3.resource('ec2')
     for instance in ec2.instances.all():
