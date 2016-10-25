@@ -9,6 +9,7 @@ import boto3
 
 parser = argparse.ArgumentParser(description='ec2 utils')
 parser.set_defaults(target='')
+parser.add_argument('--profile', default=None)
 
 sub_parsers =  parser.add_subparsers(title='sub commands')
 
@@ -29,8 +30,7 @@ def printIfMatchOrEmpty(ins, cond, out):
 # --------------------------------------------------------------------------------
 # sub commands
 # --------------------------------------------------------------------------------
-def ids(ns):
-    ec2 = boto3.resource('ec2')
+def ids(ns, ec2):
     for instance in ec2.instances.all():
         printIfMatchOrEmpty(getInstanceName(instance), ns.name, instance.instance_id)
 
@@ -39,8 +39,7 @@ sub_parser.set_defaults(target='ids')
 sub_parser.set_defaults(func=ids)
 sub_parser.add_argument('--name')
 
-def names(ns):
-    ec2 = boto3.resource('ec2')
+def names(ns, ec2):
     for instance in ec2.instances.all():
         name = ''
         for tag in instance.tags:
@@ -53,8 +52,7 @@ sub_parser = sub_parsers.add_parser('names')
 sub_parser.set_defaults(target='names')
 sub_parser.set_defaults(func=names)
 
-def status(ns):
-    ec2 = boto3.resource('ec2')
+def status(ns, ec2):
     for instance in ec2.instances.all():
         name = getInstanceName(instance)
         print("id : {0}, {2} ({1})".format(
@@ -67,8 +65,7 @@ sub_parser = sub_parsers.add_parser('status')
 sub_parser.set_defaults(target='status')
 sub_parser.set_defaults(func=status)
 
-def ip_pub(ns):
-    ec2 = boto3.resource('ec2')
+def ip_pub(ns, ec2):
     for instance in ec2.instances.all():
         printIfMatchOrEmpty(getInstanceName(instance), ns.name, instance.public_ip_address)
 
@@ -77,8 +74,7 @@ sub_parser.set_defaults(target='ip_pub')
 sub_parser.add_argument('--name')
 sub_parser.set_defaults(func=ip_pub)
 
-def priv_dns_name(ns):
-    ec2 = boto3.resource('ec2')
+def priv_dns_name(ns, ec2):
     for instance in ec2.instances.all():
         printIfMatchOrEmpty(getInstanceName(instance), ns.name, instance.private_dns_name)
 
@@ -87,8 +83,7 @@ sub_parser.set_defaults(target='priv_dns_name')
 sub_parser.add_argument('--name')
 sub_parser.set_defaults(func=priv_dns_name)
 
-def pub_dns_name(ns):
-    ec2 = boto3.resource('ec2')
+def pub_dns_name(ns, ec2):
     for instance in ec2.instances.all():
         printIfMatchOrEmpty(getInstanceName(instance), ns.name, instance.public_dns_name)
 
@@ -97,8 +92,7 @@ sub_parser.set_defaults(target='pub_dns_name')
 sub_parser.add_argument('--name')
 sub_parser.set_defaults(func=pub_dns_name)
 
-def start(ns):
-    ec2 = boto3.resource('ec2')
+def start(ns, ec2):
     for instance in ec2.instances.all():
         if ns.name and getInstanceName(instance) in ns.args:
             instance.start()
@@ -111,8 +105,7 @@ sub_parser.add_argument('--name', action='store_true')
 sub_parser.add_argument('args')
 sub_parser.set_defaults(func=start)
 
-def stop(ns):
-    ec2 = boto3.resource('ec2')
+def stop(ns, ec2):
     for instance in ec2.instances.all():
         if ns.name and getInstanceName(instance) in ns.args:
             instance.stop()
@@ -132,7 +125,9 @@ def main():
     namespace = parser.parse_args()
 
     if namespace.target is not None and namespace.target:
-        namespace.func(namespace)
+        session = boto3.session.Session(profile_name=namespace.profile)
+        ec2 = session.resource('ec2')
+        namespace.func(namespace, ec2)
     else:
         parser.print_help()
 
